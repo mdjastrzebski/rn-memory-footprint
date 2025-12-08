@@ -7,6 +7,8 @@ import {
   TextInput as RNTextInput,
   Switch as RNSwitch,
 } from 'react-native';
+import ViewNativeComponent from 'react-native/Libraries/Components/View/ViewNativeComponent';
+import { NativeText } from 'react-native/Libraries/Text/TextNativeComponent';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { getMemoryUsage } from 'react-native-performance-toolkit';
 import { Button } from './src/Button';
@@ -19,31 +21,47 @@ const COMPONENT_TYPES = [
   'ViewNativeComponent',
   'Text',
   'TextNativeComponent',
+  'Text - Large Font',
   'TextInput',
   'Switch',
 ];
 
-type ComponentType = (typeof COMPONENT_TYPES)[number];
+const warmupMemoryFootprint = getMemoryFootprint();
+console.log('Warmup memory footprint', warmupMemoryFootprint);
 
-const warmupMemoryUsage = getMemoryUsage() * 1024 * 1024;
-console.log('Warmup memory usage', warmupMemoryUsage);
+type ComponentType = (typeof COMPONENT_TYPES)[number];
 
 export default function MemoryTestScreen() {
   const [memoryValue, setMemoryValue] = React.useState(0);
   const [beforeValue, setBeforeValue] = React.useState(0);
   const [afterValue, setAfterValue] = React.useState(0);
-  const [isDirty, setIsDirty] = React.useState(false);
-  const [viewCount, setViewCount] = React.useState('1000');
+  const [measurementCount, setMeasurementCount] = React.useState(0);
+
+  const [viewCount, setViewCount] = React.useState('5000');
   const [selectedComponent, setSelectedComponent] =
     React.useState<ComponentType>('View');
 
   const [viewsToRender, setViewsToRender] = React.useState<
     React.ReactElement[]
   >([]);
+  const [baselineMemoryFootprint, setBaselineMemoryUsage] = React.useState(0);
+  const [isLoading, startTransition] = React.useTransition();
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      if (baselineMemoryFootprint === 0 || isLoading) return;
+
+      const currentMemoryFootprint = getMemoryFootprint();
+      setBeforeValue(baselineMemoryFootprint);
+      setAfterValue(currentMemoryFootprint);
+      setMemoryValue(currentMemoryFootprint - baselineMemoryFootprint);
+      setMeasurementCount(count => count + 1);
+      setBaselineMemoryUsage(0);
+    }, 10000);
+  }, [isLoading, baselineMemoryFootprint]);
 
   const handleCreate = () => {
-    console.log('Creating views', getMemoryUsage() * 1024 * 1024);
-    const initialMemoryUsage = getMemoryUsage() * 1024 * 1024;
+    const memoryFootprint = getMemoryFootprint();
 
     const count = parseInt(viewCount, 10);
     if (isNaN(count) || count <= 0) {
@@ -51,29 +69,23 @@ export default function MemoryTestScreen() {
       return;
     }
 
-    const newViews = createViews(selectedComponent, count);
-    setViewsToRender(newViews);
-    console.log(`Created ${count} ${selectedComponent} components`);
+    startTransition(() => {
+      const newViews = createViews(selectedComponent, count);
+      setBaselineMemoryUsage(memoryFootprint);
+      setViewsToRender(newViews);
+    });
 
-    setTimeout(() => {
-      const currentMemoryUsage = getMemoryUsage() * 1024 * 1024;
-      setBeforeValue(initialMemoryUsage);
-      setAfterValue(currentMemoryUsage);
-      setMemoryValue(currentMemoryUsage - initialMemoryUsage);
-    }, 1000);
+    console.log(`Created ${count} ${selectedComponent} components`);
   };
 
   const handleClear = () => {
-    const initialMemoryUsage = getMemoryUsage() * 1024 * 1024;
-    setViewsToRender([]);
-    console.log('Cleared all views');
+    const memoryUsage = getMemoryUsage() * 1024 * 1024;
 
-    setTimeout(() => {
-      const currentMemoryUsage = getMemoryUsage() * 1024 * 1024;
-      setBeforeValue(initialMemoryUsage);
-      setAfterValue(currentMemoryUsage);
-      setMemoryValue(currentMemoryUsage - initialMemoryUsage);
-    }, 1000);
+    startTransition(() => {
+      setBaselineMemoryUsage(memoryUsage);
+      setViewsToRender([]);
+    });
+    console.log('Cleared all views');
   };
 
   return (
@@ -84,10 +96,11 @@ export default function MemoryTestScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <MemorySummary
+            viewCount={viewsToRender.length}
             value={memoryValue}
             before={beforeValue}
             after={afterValue}
-            dirty={isDirty}
+            dirty={measurementCount >= 2}
           />
 
           <DropDown
@@ -106,10 +119,13 @@ export default function MemoryTestScreen() {
 
           <View style={styles.buttonContainer}>
             <Button variant="primary" onPress={handleCreate}>
-              Create Views
+              {isLoading ? 'Creating views...' : 'Create Views'}
             </Button>
             <Button variant="secondary" onPress={handleClear}>
-              Clear
+              Remove views
+            </Button>
+            <Button variant="secondary" onPress={handleRefreshMemory}>
+              Refresh memory
             </Button>
           </View>
 
@@ -119,6 +135,86 @@ export default function MemoryTestScreen() {
     </SafeAreaProvider>
   );
 }
+
+const createViews = (
+  type: ComponentType,
+  count: number,
+): React.ReactElement[] => {
+  switch (type) {
+    case 'View':
+      return Array.from({ length: count }, (_, i) => {
+        const key = `${type}-${i}`;
+        return <View key={key} style={styles.testView} />;
+      });
+
+    case 'ViewNativeComponent':
+      return Array.from({ length: count }, (_, i) => {
+        const key = `${type}-${i}`;
+        return <ViewNativeComponent key={key} style={[styles.testView]} />;
+      });
+
+    case 'Text':
+      return Array.from({ length: count }, (_, i) => {
+        const key = `${type}-${i}`;
+        return (
+          <Text key={key} style={styles.testText}>
+            Text Component #{i + 1}
+          </Text>
+        );
+      });
+
+    case 'TextNativeComponent':
+      return Array.from({ length: count }, (_, i) => {
+        const key = `${type}-${i}`;
+        return (
+          <NativeText key={key} style={[styles.testText]}>
+            TextNative #{i + 1}
+          </NativeText>
+        );
+      });
+
+    case 'Text - Large Font':
+      return Array.from({ length: count }, (_, i) => {
+        const key = `${type}-${i}`;
+        return (
+          <Text key={key} style={styles.testTextLarge}>
+            Text Component #{i + 1}
+          </Text>
+        );
+      });
+
+    case 'TextInput':
+      return Array.from({ length: count }, (_, i) => {
+        const key = `${type}-${i}`;
+        return (
+          <RNTextInput
+            key={key}
+            style={styles.testTextInput}
+            placeholder={`TextInput #${i + 1}`}
+            placeholderTextColor="#9bb8d3"
+            editable={false}
+          />
+        );
+      });
+
+    case 'Switch':
+      return Array.from({ length: count }, (_, i) => {
+        const key = `${type}-${i}`;
+        return (
+          <RNSwitch
+            key={key}
+            value={false}
+            disabled={true}
+            trackColor={{ false: '#d6ebff', true: '#4a90e2' }}
+            thumbColor="#ffffff"
+          />
+        );
+      });
+
+    default:
+      throw new Error(`Unknown component type: ${type}`);
+  }
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -151,19 +247,26 @@ const styles = StyleSheet.create({
     color: '#9bb8d3',
     fontStyle: 'italic',
   },
-  createdView: {
+  testView: {
     backgroundColor: '#e8f4fd',
     minWidth: 100,
     minHeight: 50,
     borderColor: '#b8d9f5',
     margin: 4,
   },
-  createdText: {
+  testText: {
     backgroundColor: '#f0f8ff',
     padding: 8,
     margin: 4,
   },
-  createdTextInput: {
+  testTextLarge: {
+    backgroundColor: '#f0f8ff',
+    padding: 8,
+    fontSize: 28,
+    color: '#2c5f8d',
+    margin: 4,
+  },
+  testTextInput: {
     backgroundColor: '#ffffff',
     padding: 10,
     fontSize: 12,
@@ -176,72 +279,10 @@ const styles = StyleSheet.create({
   },
 });
 
-const createViews = (
-  type: ComponentType,
-  count: number,
-): React.ReactElement[] => {
-  switch (type) {
-    case 'View':
-      return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return <View key={key} style={styles.createdView} />;
-      });
-
-    case 'ViewNativeComponent':
-      return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return <View key={key} style={[styles.createdView]} />;
-      });
-
-    case 'Text':
-      return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return (
-          <Text key={key} style={styles.createdText}>
-            Text Component #{i + 1}
-          </Text>
-        );
-      });
-
-    case 'TextNativeComponent':
-      return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return (
-          <Text key={key} style={[styles.createdText]}>
-            TextNative #{i + 1}
-          </Text>
-        );
-      });
-
-    case 'TextInput':
-      return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return (
-          <RNTextInput
-            key={key}
-            style={styles.createdTextInput}
-            placeholder={`TextInput #${i + 1}`}
-            placeholderTextColor="#9bb8d3"
-            editable={false}
-          />
-        );
-      });
-
-    case 'Switch':
-      return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return (
-          <RNSwitch
-            key={key}
-            value={false}
-            disabled={true}
-            trackColor={{ false: '#d6ebff', true: '#4a90e2' }}
-            thumbColor="#ffffff"
-          />
-        );
-      });
-
-    default:
-      return [];
-  }
-};
+function getMemoryFootprint() {
+  const warmup1 = getMemoryUsage() * 1024 * 1024;
+  const warmup2 = getMemoryUsage() * 1024 * 1024;
+  const result = getMemoryUsage() * 1024 * 1024;
+  console.log('Memory footprint', warmup1, warmup2, result);
+  return result;
+}

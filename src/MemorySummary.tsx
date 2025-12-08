@@ -6,6 +6,7 @@ export interface MemorySummaryProps {
   before: number;
   after: number;
   dirty: boolean;
+  viewCount: number;
 }
 
 export function MemorySummary({
@@ -13,22 +14,36 @@ export function MemorySummary({
   before,
   after,
   dirty,
+  viewCount,
 }: MemorySummaryProps) {
+  const memoryPerView = viewCount > 0 ? value / viewCount : 0;
+
   return (
     <View style={styles.memoryPanel}>
-      <Text style={styles.memoryLabel}>Memory Consumption</Text>
-      <View style={styles.memoryValueContainer}>
-        <Text style={styles.memoryValue}>{formatMemory(value)}</Text>
-        <Text style={styles.memoryUnit}>MB</Text>
+      <Text style={styles.primaryLabel}>Memory per View</Text>
+      <View style={styles.primaryValueContainer}>
+        <Text style={styles.primaryValue}>
+          {formatKilobytes(memoryPerView)}
+        </Text>
+        <Text style={styles.primaryUnit}>KB</Text>
       </View>
+
+      <View style={styles.secondarySection}>
+        <Text style={styles.secondaryLabel}>Total Memory</Text>
+        <View style={styles.secondaryValueContainer}>
+          <Text style={styles.secondaryValue}>{formatMegabytes(value)}</Text>
+          <Text style={styles.secondaryUnit}>MB</Text>
+        </View>
+      </View>
+
       <View style={styles.memoryDetails}>
         <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>from</Text>
-          <Text style={styles.detailValue}>{formatMemory(before)}</Text>
+          <Text style={styles.detailValue}>{formatMegabytes(before)}</Text>
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>after</Text>
-          <Text style={styles.detailValue}>{formatMemory(after)}</Text>
+          <Text style={styles.detailValue}>{formatMegabytes(after)}</Text>
         </View>
       </View>
       {dirty && (
@@ -55,36 +70,66 @@ const styles = StyleSheet.create({
     borderColor: '#d6ebff',
     alignItems: 'center',
   },
-  memoryLabel: {
-    fontSize: 14,
+  primaryLabel: {
+    fontSize: 16,
+    color: '#2c5f8d',
+    fontWeight: '700',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  primaryValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 24,
+    justifyContent: 'center',
+  },
+  primaryValue: {
+    fontSize: 64,
+    fontWeight: '700',
+    color: '#2c5f8d',
+    letterSpacing: -1.5,
+  },
+  primaryUnit: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#2c5f8d',
+    marginLeft: 8,
+  },
+  secondarySection: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  secondaryLabel: {
+    fontSize: 12,
     color: '#6b9dc9',
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  memoryValueContainer: {
+  secondaryValueContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 16,
     justifyContent: 'center',
   },
-  memoryValue: {
-    fontSize: 56,
-    fontWeight: '700',
-    color: '#2c5f8d',
-    letterSpacing: -1,
-  },
-  memoryUnit: {
-    fontSize: 24,
+  secondaryValue: {
+    fontSize: 32,
     fontWeight: '600',
     color: '#6b9dc9',
-    marginLeft: 8,
+    letterSpacing: -0.5,
+  },
+  secondaryUnit: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#6b9dc9',
+    marginLeft: 6,
   },
   memoryDetails: {
     flexDirection: 'row',
     gap: 24,
     justifyContent: 'center',
+    marginTop: 8,
   },
   detailItem: {
     flexDirection: 'row',
@@ -92,14 +137,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   detailLabel: {
+    fontSize: 11,
+    color: '#9bb8d3',
+    fontWeight: '400',
+  },
+  detailValue: {
     fontSize: 12,
     color: '#9bb8d3',
     fontWeight: '500',
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#7fa8cc',
-    fontWeight: '600',
   },
   dirtyBadge: {
     position: 'absolute',
@@ -119,8 +164,14 @@ const styles = StyleSheet.create({
   },
 });
 
-function formatMemory(bytes: number): string {
+function formatMegabytes(bytes: number): string {
   if (!bytes && bytes !== 0) return '—';
   const mb = bytes / (1024 * 1024);
   return mb.toFixed(1);
+}
+
+function formatKilobytes(bytes: number): string {
+  if (!bytes && bytes !== 0) return '—';
+  const kb = bytes / 1024;
+  return kb.toFixed(1);
 }
