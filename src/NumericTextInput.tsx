@@ -11,8 +11,8 @@ import {
 
 export interface NumericTextInputProps {
   label: string;
-  value: string;
-  onChangeText: (text: string) => void;
+  value: number | null;
+  onChangeValue: (value: number | null) => void;
   placeholder?: string;
   style?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
@@ -21,17 +21,24 @@ export interface NumericTextInputProps {
 export function NumericTextInput({
   label,
   value,
-  onChangeText,
+  onChangeValue,
   placeholder = 'Enter number',
   style,
   inputStyle,
 }: NumericTextInputProps) {
-  const isValid = value.trim() !== '' && /^\d+$/.test(value);
+  // Convert numeric value to string for display
+  const displayValue = value === null ? '' : String(value);
+  const isValid = value !== null;
 
   const handleChange = (text: string) => {
     // Allow empty string or numeric values only
-    if (text === '' || /^\d+$/.test(text)) {
-      onChangeText(text);
+    if (text === '') {
+      onChangeValue(null);
+    } else if (/^\d+$/.test(text)) {
+      const numericValue = parseInt(text, 10);
+      if (!isNaN(numericValue)) {
+        onChangeValue(numericValue);
+      }
     }
   };
 
@@ -44,7 +51,7 @@ export function NumericTextInput({
           !isValid && styles.textInputError,
           inputStyle,
         ]}
-        value={value}
+        value={displayValue}
         onChangeText={handleChange}
         keyboardType="numeric"
         placeholder={placeholder}

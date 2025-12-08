@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import ViewNativeComponent from 'react-native/Libraries/Components/View/ViewNativeComponent';
 import { NativeText } from 'react-native/Libraries/Text/TextNativeComponent';
+import { css, html } from 'react-strict-dom';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { getMemoryUsage } from 'react-native-performance-toolkit';
 import { Button } from './src/Button';
@@ -21,9 +22,12 @@ const COMPONENT_TYPES = [
   'ViewNativeComponent',
   'Text',
   'TextNativeComponent',
-  'Text - Large Font',
+  'Text (Large Font)',
   'TextInput',
   'Switch',
+  'RSD <div>',
+  'RSD <span> with text',
+  'RSD <span> with text (Large Font)',
 ];
 
 const warmupMemoryFootprint = getMemoryFootprint();
@@ -36,7 +40,7 @@ export default function MemoryTestScreen() {
   const [finalMemory, setFinalMemory] = React.useState(0);
   const [measurementCount, setMeasurementCount] = React.useState(0);
 
-  const [viewCount, setViewCount] = React.useState('10000');
+  const [viewCount, setViewCount] = React.useState<number | null>(10000);
   const [selectedComponent, setSelectedComponent] =
     React.useState<ComponentType>('View');
 
@@ -58,23 +62,22 @@ export default function MemoryTestScreen() {
   const handleCreate = () => {
     const memoryFootprint = getMemoryFootprint();
 
-    const count = parseInt(viewCount, 10);
-    if (isNaN(count) || count <= 0) {
+    if (viewCount === null || viewCount <= 0) {
       console.log('Invalid view count');
       return;
     }
 
-    const newViews = createViews(selectedComponent, count);
+    const newViews = createViews(selectedComponent, viewCount);
     setBaselineMemory(memoryFootprint);
     setFinalMemory(memoryFootprint);
     setMeasurementCount(c => c + 1);
 
     startTransition(() => {
       setViewsToRender(newViews);
-      setRenderedViewCount(count);
+      setRenderedViewCount(viewCount);
     });
 
-    console.log(`Created ${count} ${selectedComponent} components`);
+    console.log(`Created ${viewCount} ${selectedComponent} components`);
   };
 
   const handleClear = () => {
@@ -114,7 +117,7 @@ export default function MemoryTestScreen() {
           <NumericTextInput
             label="View Count"
             value={viewCount}
-            onChangeText={setViewCount}
+            onChangeValue={setViewCount}
             placeholder="Enter view count"
           />
 
@@ -144,21 +147,18 @@ const createViews = (
   switch (type) {
     case 'View':
       return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return <View key={key} style={styles.testView} />;
+        return <View key={i} style={styles.testView} />;
       });
 
     case 'ViewNativeComponent':
       return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
-        return <ViewNativeComponent key={key} style={[styles.testView]} />;
+        return <ViewNativeComponent key={i} style={[styles.testView]} />;
       });
 
     case 'Text':
       return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
         return (
-          <Text key={key} style={styles.testText}>
+          <Text key={i} style={styles.testText}>
             Text Component #{i + 1}
           </Text>
         );
@@ -166,19 +166,17 @@ const createViews = (
 
     case 'TextNativeComponent':
       return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
         return (
-          <NativeText key={key} style={[styles.testText]}>
+          <NativeText key={i} style={[styles.testText]}>
             TextNative #{i + 1}
           </NativeText>
         );
       });
 
-    case 'Text - Large Font':
+    case 'Text (Large Font)':
       return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
         return (
-          <Text key={key} style={styles.testTextLarge}>
+          <Text key={i} style={styles.testTextLarge}>
             Text Component #{i + 1}
           </Text>
         );
@@ -186,29 +184,48 @@ const createViews = (
 
     case 'TextInput':
       return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
         return (
           <RNTextInput
-            key={key}
+            key={i}
             style={styles.testTextInput}
             placeholder={`TextInput #${i + 1}`}
-            placeholderTextColor="#9bb8d3"
-            editable={false}
           />
         );
       });
 
     case 'Switch':
       return Array.from({ length: count }, (_, i) => {
-        const key = `${type}-${i}`;
         return (
           <RNSwitch
-            key={key}
+            key={i}
             value={false}
             disabled={true}
             trackColor={{ false: '#d6ebff', true: '#4a90e2' }}
             thumbColor="#ffffff"
           />
+        );
+      });
+
+    case 'RSD <div>':
+      return Array.from({ length: count }, (_, i) => {
+        return <html.div key={i} style={cssStyles.testDiv} />;
+      });
+
+    case 'RSD <span> with text':
+      return Array.from({ length: count }, (_, i) => {
+        return (
+          <html.span key={i} style={cssStyles.testSpan}>
+            Span Component #{i + 1}
+          </html.span>
+        );
+      });
+
+    case 'RSD <span> with text (Large Font)':
+      return Array.from({ length: count }, (_, i) => {
+        return (
+          <html.span key={i} style={cssStyles.testSpanLarge}>
+            Span Component #{i + 1}
+          </html.span>
         );
       });
 
@@ -257,6 +274,7 @@ const styles = StyleSheet.create({
   },
   testText: {
     backgroundColor: '#f0f8ff',
+    fontSize: 16,
     padding: 8,
     margin: 4,
   },
@@ -276,6 +294,30 @@ const styles = StyleSheet.create({
     borderColor: '#d6ebff',
     minWidth: 120,
     minHeight: 50,
+    margin: 4,
+  },
+});
+
+const cssStyles = css.create({
+  testDiv: {
+    backgroundColor: '#e8f4fd',
+    minWidth: 100,
+    minHeight: 50,
+    borderColor: '#b8d9f5',
+    margin: 4,
+  },
+  testSpan: {
+    backgroundColor: '#f0f8ff',
+    padding: 8,
+    fontSize: 16,
+    color: '#2c5f8d',
+    margin: 4,
+  },
+  testSpanLarge: {
+    backgroundColor: '#f0f8ff',
+    padding: 8,
+    fontSize: 28,
+    color: '#2c5f8d',
     margin: 4,
   },
 });

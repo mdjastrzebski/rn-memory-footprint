@@ -14,7 +14,8 @@
     "react-native": "0.82.1",
     "react-native-nitro-modules": "^0.31.10",
     "react-native-performance-toolkit": "^0.2.1",
-    "react-native-safe-area-context": "^5.5.2"
+    "react-native-safe-area-context": "^5.5.2",
+    "react-strict-dom": "^0.0.54"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
