@@ -32,33 +32,28 @@ console.log('Warmup memory footprint', warmupMemoryFootprint);
 type ComponentType = (typeof COMPONENT_TYPES)[number];
 
 export default function MemoryTestScreen() {
-  const [memoryValue, setMemoryValue] = React.useState(0);
-  const [beforeValue, setBeforeValue] = React.useState(0);
-  const [afterValue, setAfterValue] = React.useState(0);
+  const [baselineMemory, setBaselineMemory] = React.useState(0);
+  const [finalMemory, setFinalMemory] = React.useState(0);
   const [measurementCount, setMeasurementCount] = React.useState(0);
 
-  const [viewCount, setViewCount] = React.useState('5000');
+  const [viewCount, setViewCount] = React.useState('10000');
   const [selectedComponent, setSelectedComponent] =
     React.useState<ComponentType>('View');
 
+  const [isRendering, startTransition] = React.useTransition();
   const [viewsToRender, setViewsToRender] = React.useState<
     React.ReactElement[]
   >([]);
-  const [baselineMemoryFootprint, setBaselineMemoryUsage] = React.useState(0);
-  const [isLoading, startTransition] = React.useTransition();
+  const [renderedViewCount, setRenderedViewCount] = React.useState(0);
 
   React.useEffect(() => {
-    setTimeout(() => {
-      if (baselineMemoryFootprint === 0 || isLoading) return;
+    const id = setInterval(() => {
+      const currentMemory = getMemoryFootprint();
+      setFinalMemory(currentMemory);
+    }, 500);
 
-      const currentMemoryFootprint = getMemoryFootprint();
-      setBeforeValue(baselineMemoryFootprint);
-      setAfterValue(currentMemoryFootprint);
-      setMemoryValue(currentMemoryFootprint - baselineMemoryFootprint);
-      setMeasurementCount(count => count + 1);
-      setBaselineMemoryUsage(0);
-    }, 10000);
-  }, [isLoading, baselineMemoryFootprint]);
+    return () => clearInterval(id);
+  }, []);
 
   const handleCreate = () => {
     const memoryFootprint = getMemoryFootprint();
@@ -69,10 +64,14 @@ export default function MemoryTestScreen() {
       return;
     }
 
+    const newViews = createViews(selectedComponent, count);
+    setBaselineMemory(memoryFootprint);
+    setFinalMemory(memoryFootprint);
+    setMeasurementCount(c => c + 1);
+
     startTransition(() => {
-      const newViews = createViews(selectedComponent, count);
-      setBaselineMemoryUsage(memoryFootprint);
       setViewsToRender(newViews);
+      setRenderedViewCount(count);
     });
 
     console.log(`Created ${count} ${selectedComponent} components`);
@@ -81,8 +80,10 @@ export default function MemoryTestScreen() {
   const handleClear = () => {
     const memoryUsage = getMemoryUsage() * 1024 * 1024;
 
+    setBaselineMemory(memoryUsage);
+    setFinalMemory(memoryUsage);
+    setMeasurementCount(count => count + 1);
     startTransition(() => {
-      setBaselineMemoryUsage(memoryUsage);
       setViewsToRender([]);
     });
     console.log('Cleared all views');
@@ -96,10 +97,10 @@ export default function MemoryTestScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <MemorySummary
-            viewCount={viewsToRender.length}
-            value={memoryValue}
-            before={beforeValue}
-            after={afterValue}
+            viewCount={renderedViewCount}
+            value={finalMemory - baselineMemory}
+            before={baselineMemory}
+            after={finalMemory}
             dirty={measurementCount >= 2}
           />
 
@@ -119,13 +120,13 @@ export default function MemoryTestScreen() {
 
           <View style={styles.buttonContainer}>
             <Button variant="primary" onPress={handleCreate}>
-              {isLoading ? 'Creating views...' : 'Create Views'}
+              {isRendering ? 'Creating views...' : 'Create Views'}
             </Button>
             <Button variant="secondary" onPress={handleClear}>
               Remove views
             </Button>
-            <Button variant="secondary" onPress={handleRefreshMemory}>
-              Refresh memory
+            <Button variant="secondary" onPress={() => globalThis.gc()}>
+              Trigger GC
             </Button>
           </View>
 

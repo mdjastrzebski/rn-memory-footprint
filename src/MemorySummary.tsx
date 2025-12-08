@@ -16,7 +16,7 @@ export function MemorySummary({
   dirty,
   viewCount,
 }: MemorySummaryProps) {
-  const memoryPerView = viewCount > 0 ? value / viewCount : 0;
+  const memoryPerView = viewCount !== 0 ? value / viewCount : 0;
 
   return (
     <View style={styles.memoryPanel}>
@@ -32,18 +32,15 @@ export function MemorySummary({
         <Text style={styles.secondaryLabel}>Total Memory</Text>
         <View style={styles.secondaryValueContainer}>
           <Text style={styles.secondaryValue}>{formatMegabytes(value)}</Text>
-          <Text style={styles.secondaryUnit}>MB</Text>
+          <Text style={styles.secondaryUnit}>MB (per {viewCount} views)</Text>
         </View>
       </View>
 
       <View style={styles.memoryDetails}>
         <View style={styles.detailItem}>
-          <Text style={styles.detailLabel}>from</Text>
-          <Text style={styles.detailValue}>{formatMegabytes(before)}</Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Text style={styles.detailLabel}>after</Text>
-          <Text style={styles.detailValue}>{formatMegabytes(after)}</Text>
+          <Text style={styles.detailValue}>
+            {formatMegabytes(before)} MB &rarr; {formatMegabytes(after)} MB
+          </Text>
         </View>
       </View>
       {dirty && (
@@ -167,7 +164,7 @@ const styles = StyleSheet.create({
 function formatMegabytes(bytes: number): string {
   if (!bytes && bytes !== 0) return '—';
   const mb = bytes / (1024 * 1024);
-  return mb.toFixed(1);
+  return mb.toFixed(0);
 }
 
 function formatKilobytes(bytes: number): string {
