@@ -3,8 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "android": "react-native run-android",
+    "android": "react-native run-android --active-arch-only ",
+    "android:release": "react-native run-android --mode Release --active-arch-only ",
     "ios": "react-native run-ios",
+    "ios:release": "react-native run-ios --mode Release",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest"
