@@ -2325,20 +2325,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/new-app-screen@npm:0.82.1":
-  version: 0.82.1
-  resolution: "@react-native/new-app-screen@npm:0.82.1"
-  peerDependencies:
-    "@types/react": ^19.1.0
-    react: "*"
-    react-native: "*"
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10c0/a8c789735b5818c1ce699f7bde26fe3b3bcb039a98fa06f80a77fd36a83d4a55f591926932a72f62ed26338fb39c7258d855f299b58e56d21f1914fe2964c592
-  languageName: node
-  linkType: hard
-
 "@react-native/normalize-colors@npm:0.82.1":
   version: 0.82.1
   resolution: "@react-native/normalize-colors@npm:0.82.1"
@@ -2716,7 +2702,6 @@ __metadata:
     "@react-native/babel-preset": "npm:0.82.1"
     "@react-native/eslint-config": "npm:0.82.1"
     "@react-native/metro-config": "npm:0.82.1"
-    "@react-native/new-app-screen": "npm:0.82.1"
     "@react-native/typescript-config": "npm:0.82.1"
     "@types/jest": "npm:^29.5.13"
     "@types/react": "npm:^19.1.1"
@@ -2726,6 +2711,8 @@ __metadata:
     prettier: "npm:2.8.8"
     react: "npm:19.1.1"
     react-native: "npm:0.82.1"
+    react-native-nitro-modules: "npm:^0.31.10"
+    react-native-performance-toolkit: "npm:^0.2.1"
     react-native-safe-area-context: "npm:^5.5.2"
     react-test-renderer: "npm:19.1.1"
     typescript: "npm:^5.8.3"
@@ -7368,6 +7355,37 @@ __metadata:
   version: 19.2.1
   resolution: "react-is@npm:19.2.1"
   checksum: 10c0/0ebeaedb4ff615055cbcd758c7e22ba9644e21110adbd293dd1aada3591abf7399152a786cd120e324c10706d75e28c2130c27d1b9b5ae637aef4c52f4d17a91
+  languageName: node
+  linkType: hard
+
+"react-native-nitro-modules@npm:^0.31.10":
+  version: 0.31.10
+  resolution: "react-native-nitro-modules@npm:0.31.10"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/0acc6ca5f12e24a6601e682070f257a771b95214c11fba911b342af705071234544c93076900f43400c8ae2f1a6738011b120e4425813968102997860ffd7626
+  languageName: node
+  linkType: hard
+
+"react-native-performance-toolkit@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "react-native-performance-toolkit@npm:0.2.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: "*"
+    react-native-nitro-modules: "*"
+    react-native-reanimated: "*"
+    react-native-worklets: "*"
+  peerDependenciesMeta:
+    react-native-gesture-handler:
+      optional: true
+    react-native-reanimated:
+      optional: true
+    react-native-worklets:
+      optional: true
+  checksum: 10c0/69173139a16dd916d32d85441b74e991319f2f7eef71d92f0a11ff8ac078ee21bc1244dc0430b5411d1e9aa3f0fb86da9c2945cc79498891b6416ae568d8729f
   languageName: node
   linkType: hard
 
