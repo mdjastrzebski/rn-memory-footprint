@@ -99,6 +99,11 @@ export default function MemoryTestScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
+          <View style={styles.modeLabelContainer}>
+            <Text style={styles.modeLabel}>
+              {__DEV__ ? 'DEBUG' : 'RELEASE'}
+            </Text>
+          </View>
           <MemorySummary
             viewCount={renderedViewCount}
             value={finalMemory - baselineMemory}
@@ -238,6 +243,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f8ff',
+  },
+  modeLabelContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modeLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#4a90e2',
+    letterSpacing: 0.5,
+    opacity: 0.8,
   },
   scrollView: {
     flex: 1,
