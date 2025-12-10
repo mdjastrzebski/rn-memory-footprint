@@ -42,17 +42,31 @@ export default function MemoryTestScreen() {
     }
 
     const memoryFootprint = getMemoryFootprint('create views');
-    const newViews = viewFactory[selectedView](viewCount);
+    const factory = viewFactory[selectedView];
+    let _renderedViewCount = viewCount;
+    let _viewsToRender: React.ReactElement[];
+
+    if (typeof factory === 'function') {
+      _viewsToRender = factory(viewCount);
+    } else {
+      if (factory.maxViewCount) {
+        _renderedViewCount = Math.min(_renderedViewCount, factory.maxViewCount);
+      }
+
+      _viewsToRender = factory.factory(_renderedViewCount);
+      setViewCount(_renderedViewCount);
+    }
+
     setBaselineMemory(memoryFootprint);
     setCurrentMemory(memoryFootprint);
     setMeasurementCount(count => count + 1);
 
     startTransition(() => {
-      setViewsToRender(newViews);
-      setRenderedViewCount(viewCount);
+      setViewsToRender(_viewsToRender);
+      setRenderedViewCount(_renderedViewCount);
     });
 
-    console.log(`Created ${viewCount} ${selectedView} elements`);
+    console.log(`Rendered ${_renderedViewCount} ${selectedView} elements`);
   };
 
   const removeViews = () => {

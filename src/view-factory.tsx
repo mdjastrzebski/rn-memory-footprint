@@ -9,7 +9,16 @@ import ViewNativeComponent from 'react-native/Libraries/Components/View/ViewNati
 // eslint-disable-next-line @react-native/no-deep-imports
 import { NativeText } from 'react-native/Libraries/Text/TextNativeComponent';
 
-export const viewFactory = {
+type ComponentFactoryFn = (count: number) => React.ReactElement[];
+
+type ComponentFactoryEntry =
+  | ComponentFactoryFn
+  | {
+      factory: ComponentFactoryFn;
+      maxViewCount?: number;
+    };
+
+export const viewFactory: Record<string, ComponentFactoryEntry> = {
   View: (count: number) => {
     return range(count).map(i => <View key={i} style={styles.view} />);
   },
@@ -60,39 +69,7 @@ export const viewFactory = {
       />
     ));
   },
-
-  'Image (150x50@2x)': (count: number) => {
-    return range(count).map(i => (
-      <Image
-        key={i}
-        source={{
-          uri: `https://placehold.co/150x50@2x.png?id=${i}`,
-          width: 150,
-          height: 50,
-        }}
-        style={styles.image}
-      />
-    ));
-  },
-  'Image (150x50@2x) - empty': (count: number) => {
-    return range(count).map(i => (
-      <Image
-        key={i}
-        source={require('../assets/res2-150x50.png')}
-        style={styles.image}
-      />
-    ));
-  },
-  'Image (300x100)': (count: number) => {
-    return range(count).map(i => (
-      <Image
-        key={i}
-        source={require('../assets/res1-300x100.png')}
-        style={styles.image}
-      />
-    ));
-  },
-  'Image (300x100@2x)': (count: number) => {
+  'Image (300x100@2x, local)': (count: number) => {
     return range(count).map(i => (
       <Image
         key={i}
@@ -100,6 +77,23 @@ export const viewFactory = {
         style={styles.image}
       />
     ));
+  },
+  'Image (500x500@2x, remote)': {
+    factory: (count: number) => {
+      return range(count).map(i => (
+        <Image
+          key={i}
+          source={{
+            uri: `https://placehold.co/300x100@2x.png?id=${i}`,
+            width: 500,
+            height: 500,
+          }}
+          style={styles.image}
+        />
+      ));
+    },
+    // After 25 views, it gets rate limited by the remote server.
+    maxViewCount: 25,
   },
   'RSD <div>': (count: number) => {
     return range(count).map(i => <html.div key={i} style={cssStyles.view} />);
