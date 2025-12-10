@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, TextInput, Switch } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Switch, Image } from 'react-native';
 import { css, html } from 'react-strict-dom';
 
 // @ts-expect-error
@@ -60,6 +60,47 @@ export const viewFactory = {
       />
     ));
   },
+
+  'Image (150x50@2x)': (count: number) => {
+    return range(count).map(i => (
+      <Image
+        key={i}
+        source={{
+          uri: `https://placehold.co/150x50@2x.png?id=${i}`,
+          width: 150,
+          height: 50,
+        }}
+        style={styles.image}
+      />
+    ));
+  },
+  'Image (150x50@2x) - empty': (count: number) => {
+    return range(count).map(i => (
+      <Image
+        key={i}
+        source={require('../assets/res2-150x50.png')}
+        style={styles.image}
+      />
+    ));
+  },
+  'Image (300x100)': (count: number) => {
+    return range(count).map(i => (
+      <Image
+        key={i}
+        source={require('../assets/res1-300x100.png')}
+        style={styles.image}
+      />
+    ));
+  },
+  'Image (300x100@2x)': (count: number) => {
+    return range(count).map(i => (
+      <Image
+        key={i}
+        source={require('../assets/res2-300x100.png')}
+        style={styles.image}
+      />
+    ));
+  },
   'RSD <div>': (count: number) => {
     return range(count).map(i => <html.div key={i} style={cssStyles.view} />);
   },
@@ -113,6 +154,9 @@ const styles = StyleSheet.create({
     borderColor: '#d6ebff',
     minWidth: 120,
     minHeight: 50,
+    margin: 4,
+  },
+  image: {
     margin: 4,
   },
 });
