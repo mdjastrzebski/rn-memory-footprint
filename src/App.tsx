@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { getMemoryUsage } from 'react-native-performance-toolkit';
 import { Button } from './components/Button';
@@ -77,7 +77,7 @@ export default function MemoryTestScreen() {
         >
           <View style={styles.modeLabelContainer}>
             <Text style={styles.modeLabel}>
-              {__DEV__ ? 'DEBUG' : 'RELEASE'}
+              {getOS()} {__DEV__ ? 'DEBUG' : 'RELEASE'}
             </Text>
           </View>
           <MemorySummary
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   modeLabelContainer: {
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   modeLabel: {
     fontSize: 11,
@@ -141,29 +141,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
   },
   buttonContainer: {
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   viewsContainer: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
-    padding: 32,
-    minHeight: 200,
+    padding: 10,
+    minHeight: 150,
     alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#e8f4fd',
-    borderStyle: 'dashed',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#9bb8d3',
-    fontStyle: 'italic',
   },
 });
+
+function getOS() {
+  switch (Platform.OS) {
+    case 'ios':
+      return 'iOS';
+    case 'android':
+      return 'Android';
+    default:
+      return Platform.OS;
+  }
+}
 
 function getMemoryFootprint(name?: string) {
   const result = getMemoryUsage() * 1024 * 1024;

@@ -76,7 +76,7 @@ export function DropDown<T extends string>({
 
 const styles = StyleSheet.create({
   dropdownContainer: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   inputLabel: {
     fontSize: 14,
