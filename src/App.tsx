@@ -82,6 +82,8 @@ export default function MemoryTestScreen() {
     console.log('Removed all views');
   };
 
+  const notes = getNotesForComponent(selectedView);
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -115,6 +117,8 @@ export default function MemoryTestScreen() {
             onChangeValue={setViewCount}
             placeholder="Enter view count"
           />
+
+          {notes ? <Text style={styles.notesText}>{notes}</Text> : null}
 
           <View style={styles.buttonContainer}>
             <Button variant="primary" onPress={createViews}>
@@ -157,6 +161,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
   },
+  notesText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
   buttonContainer: {
     gap: 12,
     marginBottom: 20,
@@ -171,6 +181,13 @@ const styles = StyleSheet.create({
     borderColor: '#e8f4fd',
   },
 });
+
+function getNotesForComponent(type: ComponentType): string | undefined {
+  const factory = viewFactory[type];
+  return typeof factory === 'object' && 'notes' in factory
+    ? factory.notes
+    : undefined;
+}
 
 function getOS() {
   switch (Platform.OS) {

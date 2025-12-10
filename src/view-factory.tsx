@@ -15,6 +15,7 @@ type ComponentFactoryEntry =
   | ComponentFactoryFn
   | {
       factory: ComponentFactoryFn;
+      notes?: string;
       maxViewCount?: number;
     };
 
@@ -69,31 +70,36 @@ export const viewFactory: Record<string, ComponentFactoryEntry> = {
       />
     ));
   },
-  'Image (300x100@2x, local)': (count: number) => {
-    return range(count).map(i => (
-      <Image
-        key={i}
-        source={require('../assets/res2-300x100.png')}
-        style={styles.image}
-      />
-    ));
+  'Image (300x100@2x, local)': {
+    factory: (count: number) =>
+      range(count).map(i => (
+        <Image
+          key={i}
+          source={require('../assets/res2-300x100.png')}
+          style={styles.image}
+        />
+      )),
+    notes:
+      'For Image component use Xcode Instruments to check the actual memory usage, as the app underreports it.',
   },
   'Image (500x500@2x, remote)': {
-    factory: (count: number) => {
-      return range(count).map(i => (
+    factory: (count: number) =>
+      range(count).map(i => (
         <Image
           key={i}
           source={{
-            uri: `https://placehold.co/300x100@2x.png?id=${i}`,
+            uri: `https://placehold.co/500x500@2x.png`,
             width: 500,
             height: 500,
           }}
           style={styles.image}
         />
-      ));
-    },
+      )),
+
     // After 25 views, it gets rate limited by the remote server.
     maxViewCount: 25,
+    notes:
+      '1. For Image component use Xcode Instruments to check the actual memory usage, as the app underreports it.\n2. Watch out for request rate limiting (scroll down to see if images go rendered).',
   },
   'RSD <div>': (count: number) => {
     return range(count).map(i => <html.div key={i} style={cssStyles.view} />);
