@@ -8,18 +8,23 @@ import {
   Pressable,
 } from 'react-native';
 
-export interface DropDownProps {
+export interface DropDownProps<T extends string> {
   label: string;
-  value: string;
-  options: string[];
-  onSelect: (option: string) => void;
+  value: T;
+  options: T[];
+  onSelect: (value: T) => void;
 }
 
 // DropDown Component
-export function DropDown({ label, value, options, onSelect }: DropDownProps) {
+export function DropDown<T extends string>({
+  label,
+  value,
+  options,
+  onSelect,
+}: DropDownProps<T>) {
   const [visible, setVisible] = useState(false);
 
-  const handleSelect = (option: string) => {
+  const handleSelect = (option: T) => {
     onSelect(option);
     setVisible(false);
   };
@@ -71,7 +76,7 @@ export function DropDown({ label, value, options, onSelect }: DropDownProps) {
 
 const styles = StyleSheet.create({
   dropdownContainer: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   inputLabel: {
     fontSize: 14,
